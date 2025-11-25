@@ -1,0 +1,175 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('invoice-form');
+    const itemsContainer = document.getElementById('items-container');
+    const addItemBtn = document.getElementById('add-item');
+    const generateBtn = document.getElementById('generate-bill');
+    const billOutput = document.getElementById('bill-output');
+    const invoiceContent = document.getElementById('invoice-content');
+    const printBtn = document.getElementById('print-bill');
+
+    // Preview elements
+    const previewClient = document.getElementById('preview-client');
+    const previewEmail = document.getElementById('preview-email');
+    const previewDate = document.getElementById('preview-date');
+    const previewDue = document.getElementById('preview-due');
+    const previewItemsTable = document.querySelector('#preview-items tbody');
+    const previewSubtotal = document.getElementById('preview-subtotal');
+    const previewTax = document.getElementById('preview-tax');
+    const previewTotal = document.getElementById('preview-total');
+
+    // Load saved data from localStorage
+    loadFromStorage();
+
+    // Live update preview on input changes
+    document.addEventListener('input', updatePreview);
+    document.addEventListener('change', updatePreview);
+
+    // Add new item
+    addItemBtn.addEventListener('click', () => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'item';
+        itemDiv.innerHTML = `
+            <input type="text" class="item-description" placeholder="Service Description" required>
+            <input type="number" class="item-quantity" placeholder="Qty" min="1" required>
+            <input type="number" class="item-rate" placeholder="Rate" step="0.01" required>
+            <button type="button" class="remove-item">Remove</button>
+        `;
+        itemsContainer.appendChild(itemDiv);
+        attachRemoveListener(itemDiv.querySelector('.remove-item'));
+        saveToStorage();
+        updatePreview();
+    });
+
+    // Remove item
+    function attachRemoveListener(btn) {
+        btn.addEventListener('click', (e) => {
+            e.target.parentElement.remove();
+            saveToStorage();
+            updatePreview();
+        });
+    }
+
+    // Attach remove listeners to existing items
+    document.querySelectorAll('.remove-item').forEach(btn => attachRemoveListener(btn));
+
+    // Update live preview
+    function updatePreview() {
+        previewClient.textContent = document.getElementById('client-name').value || 'Client Name';
+        previewEmail.textContent = document.getElementById('client-email').value || 'client@example.com';
+        previewDate.textContent = document.getElementById('invoice-date').value || 'YYYY-MM-DD';
+        previewDue.textContent = document.getElementById('due-date').value || 'YYYY-MM-DD';
+
+        // Update items table
+        previewItemsTable.innerHTML = '';
+        let subtotal = 0;
+        document.querySelectorAll('.item').forEach(item => {
+            const desc = item.querySelector('.item-description').value || 'Description';
+            const qty = parseFloat(item.querySelector('.item-quantity').value) || 0;
+            const rate = parseFloat(item.querySelector('.item-rate').value) || 0;
+            const amount = qty * rate;
+            subtotal += amount;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${desc}</td><td>${qty}</td><td>₹${rate.toFixed(2)}</td><td>₹${amount.toFixed(2)}</td>`;
+            previewItemsTable.appendChild(row);
+        });
+
+        const taxRate = parseFloat(document.getElementById('tax-rate').value) || 0;
+        const tax = (subtotal * taxRate) / 100;
+        const total = subtotal + tax;
+
+        previewSubtotal.textContent = subtotal.toFixed(2);
+        previewTax.textContent = tax.toFixed(2);
+        previewTotal.textContent = total.toFixed(2);
+    }
+
+    // Generate Final Bill
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        updatePreview(); // Ensure final update
+        const clientName = document.getElementById('client-name').value;
+        const clientEmail = document.getElementById('client-email').value;
+        const invoiceDate = document.getElementById('invoice-date').value;
+        const dueDate = document.getElementById('due-date').value;
+        const taxRate = document.getElementById('tax-rate').value;
+
+        let itemsHtml = '<table><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>';
+        let subtotal = 0;
+        document.querySelectorAll('.item').forEach(item => {
+            const desc = item.querySelector('.item-description').value;
+            const qty = item.querySelector('.item-quantity').value;
+            const rate = item.querySelector('.item-rate').value;
+            const amount = qty * rate;
+            subtotal += amount;
+            itemsHtml += `<tr><td>${desc}</td><td>${qty}</td><td>₹${parseFloat(rate).toFixed(2)}</td><td>₹${amount.toFixed(2)}</td></tr>`;
+        });
+        itemsHtml += '</tbody></table>';
+
+        const tax = (subtotal * taxRate) / 100;
+        const total = subtotal + tax;
+
+        invoiceContent.innerHTML = `
+            <h3>DesignKart-Bihar Invoice</h3>
+            <p><strong>Client:</strong> ${clientName}</p>
+            <p><strong>Email:</strong> ${clientEmail}</p>
+            <p><strong>Date:</strong> ${invoiceDate}</p>
+            <p><strong>Due:</strong> ${dueDate}</p>
+            ${itemsHtml}
+            <p><strong>Subtotal:</strong> ₹${subtotal.toFixed(2)}</p>
+            <p><strong>Tax (${taxRate}%):</strong> ₹${tax.toFixed(2)}</p>
+            <p><strong>Total:</strong> ₹${total.toFixed(2)}</p>
+        `;
+        billOutput.style.display = 'block';
+    });
+
+    // Print Bill
+    printBtn.addEventListener('click', () => {
+        window.print();
+    });
+
+    // Save to localStorage
+    function saveToStorage() {
+        const data = {
+            clientName: document.getElementById('client-name').value,
+            clientEmail: document.getElementById('client-email').value,
+            invoiceDate: document.getElementById('invoice-date').value,
+            dueDate: document.getElementById('due-date').value,
+            taxRate: document.getElementById('tax-rate').value,
+            items: []
+        };
+        document.querySelectorAll('.item').forEach(item => {
+            data.items.push({
+                desc: item.querySelector('.item-description').value,
+                qty: item.querySelector('.item-quantity').value,
+                rate: item.querySelector('.item-rate').value
+            });
+        });
+        localStorage.setItem('invoiceData', JSON.stringify(data));
+    }
+
+    // Load from localStorage
+    function loadFromStorage() {
+        const data = JSON.parse(localStorage.getItem('invoiceData'));
+        if (data) {
+            document.getElementById('client-name').value = data.clientName;
+            document.getElementById('client-email').value = data.clientEmail;
+            document.getElementById('invoice-date').value = data.invoiceDate;
+            document.getElementById('due-date').value = data.dueDate;
+            document.getElementById('tax-rate').value = data.taxRate;
+            itemsContainer.innerHTML = '';
+            data.items.forEach(itemData => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item';
+                itemDiv.innerHTML = `
+                    <input type="text" class="item-description" value="${itemData.desc}" required>
+                    <input type="number" class="item-quantity" value="${itemData.qty}" min="1" required>
+                    <input type="number" class="item-rate" value="${itemData.rate}" step="0.01" required>
+                    <button type="button" class="remove-item">Remove</button>
+                `;
+                itemsContainer.appendChild(itemDiv);
+                attachRemoveListener(itemDiv.querySelector('.remove-item'));
+            });
+        }
+        updatePreview();
+    }
+});

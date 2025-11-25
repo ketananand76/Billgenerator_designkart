@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Generator - DesignKart-Bihar</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>DesignKart-Bihar Bill Generator</h1>
+        <p>Professional Designing Services Invoice Tool with Live Preview</p>
+    </header>
+    
+    <main>
+        <div class="container">
+            <section id="bill-form">
+                <h2>Create Invoice</h2>
+                <form id="invoice-form">
+                    <div class="form-group">
+                        <label for="client-name">Client Name:</label>
+                        <input type="text" id="client-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-email">Client Email:</label>
+                        <input type="email" id="client-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="invoice-date">Invoice Date:</label>
+                        <input type="date" id="invoice-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="due-date">Due Date:</label>
+                        <input type="date" id="due-date" required>
+                    </div>
+                    
+                    <h3>Items</h3>
+                    <div id="items-container">
+                        <div class="item">
+                            <input type="text" class="item-description" placeholder="Service Description" required>
+                            <input type="number" class="item-quantity" placeholder="Qty" min="1" required>
+                            <input type="number" class="item-rate" placeholder="Rate" step="0.01" required>
+                            <button type="button" class="remove-item">Remove</button>
+                        </div>
+                    </div>
+                    <button type="button" id="add-item">Add Item</button>
+                    
+                    <div class="form-group">
+                        <label for="tax-rate">Tax Rate (%):</label>
+                        <input type="number" id="tax-rate" step="0.01" value="18" required>
+                    </div>
+                    
+                    <button type="submit" id="generate-bill">Generate Final Bill</button>
+                </form>
+            </section>
+            
+            <section id="live-preview">
+                <h2>Live Preview</h2>
+                <div id="preview-content">
+                    <div class="preview-header">
+                        <h3>DesignKart-Bihar</h3>
+                        <p>Designing Services Company</p>
+                        <p>Invoice Preview</p>
+                    </div>
+                    <div class="preview-details">
+                        <p><strong>Client:</strong> <span id="preview-client"></span></p>
+                        <p><strong>Email:</strong> <span id="preview-email"></span></p>
+                        <p><strong>Date:</strong> <span id="preview-date"></span></p>
+                        <p><strong>Due:</strong> <span id="preview-due"></span></p>
+                    </div>
+                    <table id="preview-items">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Qty</th>
+                                <th>Rate</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div class="preview-totals">
+                        <p><strong>Subtotal:</strong> ₹<span id="preview-subtotal">0.00</span></p>
+                        <p><strong>Tax (18%):</strong> ₹<span id="preview-tax">0.00</span></p>
+                        <p><strong>Total:</strong> ₹<span id="preview-total">0.00</span></p>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <section id="bill-output" style="display: none;">
+            <h2>Final Generated Invoice</h2>
+            <div id="invoice-content"></div>
+            <button id="print-bill">Print Invoice</button>
+        </section>
+    </main>
+    
+    <footer>
+        <p>&copy; 2023 DesignKart-Bihar. All rights reserved.</p>
+    </footer>
+    
+    <script src="script.js"></script>
+</body>
+</html>
